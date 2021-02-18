@@ -18,6 +18,7 @@ namespace hotelservice.Controllers
         {
             _logger = logger;
             _hotelDbContext = hotelDbContext;
+            
         }
 
         [HttpGet("/reservations")]
@@ -31,6 +32,16 @@ namespace hotelservice.Controllers
 
             return reservations;
 
+        }
+
+        [HttpGet("/rooms")]
+        public IEnumerable<Room> getRooms()
+        {
+
+            List<Room> rooms = new List<Room>();
+            var room = _hotelDbContext.rooms.Find(1);
+            rooms.Add(room);
+            return rooms;
         }
     }
 }
