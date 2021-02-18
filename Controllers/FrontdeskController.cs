@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using HotelLibrary;
+using System.Threading.Tasks;
 
 namespace hotelservice.Controllers
 {
@@ -21,27 +22,30 @@ namespace hotelservice.Controllers
             
         }
 
-        [HttpGet("/reservations")]
-        public IEnumerable<Reservation> GetReservations()
+        [HttpGet("/rooms")]
+        public IActionResult GetRooms([FromQuery]string status)
         {
-            List<Reservation> reservations = new List<Reservation>();
-            reservations.Add(new Reservation(100, 254, DateTime.Now, DateTime.Now.AddDays(2)));
-            reservations.Add(new Reservation(101, 199, DateTime.Now.AddDays(3), DateTime.Now.AddDays(5)));
-            reservations.Add(new Reservation(102, 423, DateTime.Now, DateTime.Now.AddDays(7)));
-            reservations.Add(new Reservation(103, 423, DateTime.Now, DateTime.Now.AddDays(10)));
-
-            return reservations;
-
+            return status switch
+            {
+                null => Ok(_hotelDbContext.Rooms.ToList()),//schmekk opp alle
+                "AVAILABLE" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("AVAILABLE")).ToList()),
+                "BUSY" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("BUSY")).ToList()),
+                "CLEANING" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("CLEANING")).ToList()),
+                "MAINTENANCE" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("MAINTENANCE")).ToList()),
+                "SERVICE" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("SERVICE")).ToList()),
+                _ => BadRequest(),
+            };
         }
 
-        [HttpGet("/rooms")]
-        public IEnumerable<Room> getRooms()
+        [HttpGet("/rooms/{roomNumber}")]
+        public IActionResult GetSingleRoom(int roomNumber)
         {
-
-            List<Room> rooms = new List<Room>();
-            var room = _hotelDbContext.rooms.Find(1);
-            rooms.Add(room);
-            return rooms;
+            var room = _hotelDbContext.Rooms.Where(r => r.RoomNumber == roomNumber).FirstOrDefault();
+            if (room == null)
+            {
+                return NotFound();
+            }
+            return Ok(room);
         }
     }
 }

@@ -10,5 +10,5 @@ public class HotelDbContext : DbContext
         modelBuilder.HasDefaultSchema("dbo");
     }
 
-    public virtual DbSet<Room> rooms { get; set; }
+    public virtual DbSet<Room> Rooms { get; set; }
 }
