@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace hotelservice
 {
@@ -27,6 +21,10 @@ namespace hotelservice
         public void ConfigureServices(IServiceCollection services)
         {
 
+            services.AddDbContext<HotelDbContext>(options =>
+            {
+                options.UseSqlServer("Server=dat154.hvl.no:1443; Database=dat154_2021_4; User Id=dat154_2021_4; Password=dat154_2021_4;");
+            });
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
