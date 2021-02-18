@@ -3,19 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using HotelLibrary;
-using System.Threading.Tasks;
 
 namespace hotelservice.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class FrontdeskController : ControllerBase
+    public class HotelRoomsController : ControllerBase
     {
-        private readonly ILogger<FrontdeskController> _logger;
+        private readonly ILogger<HotelRoomsController> _logger;
         private readonly HotelDbContext _hotelDbContext;
+        private static readonly List<string> allowedStatuses = new List<string>
+        {
+            "AVAILABLE",
+            "BUSY",
+            "MAINTENANCE",
+            "CLEANING",
+            "SERVICE"
+        };
 
-        public FrontdeskController(ILogger<FrontdeskController> logger, HotelDbContext hotelDbContext)
+        public HotelRoomsController(ILogger<HotelRoomsController> logger, HotelDbContext hotelDbContext)
         {
             _logger = logger;
             _hotelDbContext = hotelDbContext;
@@ -46,6 +52,26 @@ namespace hotelservice.Controllers
                 return NotFound();
             }
             return Ok(room);
+        }
+
+        [HttpPut("/rooms/{roomNumber}")]
+        public IActionResult UpdateRoom(int roomNumber, [FromQuery] string newStatus)
+        {
+            
+            if (!allowedStatuses.Contains(newStatus))
+            {
+                return UnprocessableEntity();
+            }
+
+            var room = _hotelDbContext.Rooms.Where(r => r.RoomNumber == roomNumber).FirstOrDefault();
+            if (room == null)
+            {
+                return NotFound();
+            }
+
+            room.RoomStatus = newStatus;
+            _hotelDbContext.SaveChanges();
+            return Ok(_hotelDbContext.Rooms.Single(r => r.RoomNumber == roomNumber));
         }
     }
 }
