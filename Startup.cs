@@ -23,7 +23,8 @@ namespace hotelservice
 
             services.AddDbContext<HotelDbContext>(options =>
             {
-                options.UseSqlServer("Server=dat154.hvl.no,1443; Database=dat154_2021_4; User Id=dat154_2021_4; Password=dat154_2021_4;");
+                string ConnString = Configuration.GetConnectionString("dev");
+                options.UseSqlServer(ConnString);
             });
             services.AddControllers();
             services.AddSwaggerGen(c =>
