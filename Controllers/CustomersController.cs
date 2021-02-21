@@ -23,6 +23,9 @@ namespace hotelservice.Controllers
         [Route("/login")]
         public IActionResult Login([FromBody] CustomerLogin loginRequest)
         {
+
+            _logger.LogDebug("login", loginRequest);
+
             var customer = _hotelDbContext.Customers
                 .Where(c => c.Username.Equals(loginRequest.Username))
                 .FirstOrDefault();
