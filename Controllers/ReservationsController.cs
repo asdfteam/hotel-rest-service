@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using HotelLibrary;
 using System.Collections.Generic;
+using System;
 
 namespace hotelservice.Controllers
 {
@@ -21,8 +22,7 @@ namespace hotelservice.Controllers
         }
 
         /**
-         *  dbContext støtter lazy-loading (å hente entiteter referert med foreign key på denne raden) på kun én enkelt entitet,
-         *  så her må vi trikse litt med løsning :S
+         *  grusomt men la gå
          */
         [HttpGet]
         public IActionResult GetReservations()
@@ -66,20 +66,16 @@ namespace hotelservice.Controllers
 
         }
 
-        /**
-         *  Eksempel på når man kun skal ha én entitet:
-         *  .Include(x => x.Felt) for å rekursivt hente de refererte entitetene
-         */
         [HttpGet]
         [Route("{customerId}")]
         public IActionResult GetSingleReservation(int customerId)
         {
 
             var reservations = _hotelDbContext.Reservations
-                                            .Where(r => r.Customer.CustomerId == customerId)
-                                            .Include(r => r.Customer)
-                                            .Include(r => r.Room)
-                                            .ToList();
+                                                .Where(r => r.Customer.CustomerId == customerId)
+                                                .Include(r => r.Customer)
+                                                .Include(r => r.Room)
+                                                .ToList();
             if (reservations == null)
             {
                 return NotFound();
@@ -87,21 +83,42 @@ namespace hotelservice.Controllers
             return Ok(reservations);
         }
 
-        /**
-         *  Denne driter i om rommet er opptatt, inntil videre og mest sannsynlig for alltid
-         */
+
         [HttpPost]
         [Route("/{customerId}")]
         public IActionResult CreateReservation(int customerId, [FromBody] CreateReservationRequest request)
         {
-            var customer = _hotelDbContext.Customers.Where(c => c.CustomerId == customerId).FirstOrDefault();
+            var customer = _hotelDbContext.Customers
+                                            .Where(c => c.CustomerId == customerId)
+                                            .FirstOrDefault();
             if (customer == null)
             {
                 return BadRequest();
             }
 
-            var room = _hotelDbContext.Rooms.Where(r => r.RoomNumber == request.RoomNumber).FirstOrDefault();
+            var room = _hotelDbContext.Rooms
+                                        .Where(r => r.RoomNumber == request.RoomNumber)
+                                        .FirstOrDefault();
             if (room == null)
+            {
+                return BadRequest();
+            }
+
+            var otherReservations = _hotelDbContext.Reservations
+                                                      .Where(r => r.Room.RoomNumber == room.RoomNumber)
+                                                      .ToList();
+
+
+            bool reserved = false;
+            otherReservations.ForEach(r =>
+           {
+               if (isBetween(r.StartDate, r.EndDate, request.StartDate, request.EndDate))
+               {
+                   reserved = true;
+               }
+           });
+
+            if (reserved)
             {
                 return BadRequest();
             }
@@ -116,11 +133,37 @@ namespace hotelservice.Controllers
             _hotelDbContext.Reservations.Add(reservation);
             _hotelDbContext.SaveChanges();
 
-            return Ok(_hotelDbContext.Reservations
+            var insertedReservation = _hotelDbContext.Reservations
                                         .Include(r => r.Room)
                                         .Include(r => r.Customer)
                                         .Where(r => r.Customer.CustomerId == customerId)
-                                        .First());
+                                        .First();
+
+            _hotelDbContext.CustomerReservations.Add(new CustomerReservation
+            {
+                ReservationId = insertedReservation.ReservationId,
+                CustomerId = insertedReservation.Customer.CustomerId,
+                roomNumber = insertedReservation.Room.RoomNumber
+            });
+
+            _hotelDbContext.SaveChanges();
+
+            return Ok(insertedReservation);
+        }
+
+        private bool isBetween(DateTime startDate, DateTime endDate, DateTime requestStartDate, DateTime requestEndDate)
+        {
+
+            if (requestStartDate > endDate)
+            {
+                return false;
+            }
+
+            if (requestEndDate < startDate)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
