@@ -31,16 +31,18 @@ namespace hotelservice.Controllers
         [HttpGet("/rooms")]
         public IActionResult GetRooms([FromQuery]string status)
         {
-            return status switch
+
+            if (status == null)
             {
-                null => Ok(_hotelDbContext.Rooms.ToList()),//schmekk opp alle
-                "AVAILABLE" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("AVAILABLE")).ToList()),
-                "BUSY" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("BUSY")).ToList()),
-                "CLEANING" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("CLEANING")).ToList()),
-                "MAINTENANCE" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("MAINTENANCE")).ToList()),
-                "SERVICE" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("SERVICE")).ToList()),
-                _ => BadRequest(),
-            };
+                return Ok(_hotelDbContext.Rooms.ToList());//schmekk opp alle
+            }
+
+            if (allowedStatuses.Contains(status))
+            {
+                return Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals(status)));
+            }
+
+            return BadRequest();
         }
 
         [HttpGet("/rooms/{roomNumber}")]
@@ -55,7 +57,7 @@ namespace hotelservice.Controllers
         }
 
         [HttpPut("/rooms/{roomNumber}")]
-        public IActionResult UpdateRoom(int roomNumber, [FromQuery] string newStatus)
+        public IActionResult UpdateRoom(int roomNumber, [FromQuery] string newStatus, [FromQuery] string note)
         {
             
             if (!allowedStatuses.Contains(newStatus))
@@ -70,6 +72,10 @@ namespace hotelservice.Controllers
             }
 
             room.RoomStatus = newStatus;
+            if (note != null)
+            {
+                room.Note = note;
+            }
             _hotelDbContext.SaveChanges();
             return Ok(_hotelDbContext.Rooms.Single(r => r.RoomNumber == roomNumber));
         }
