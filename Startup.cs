@@ -45,6 +45,13 @@ namespace hotelservice
 
             //app.UseHttpsRedirection();
 
+            app.UseCors(builder =>
+            {
+                builder.AllowAnyOrigin();
+                builder.AllowAnyHeader();
+                builder.AllowAnyMethod();
+            });
+
             app.UseRouting();
 
             app.UseAuthorization();
