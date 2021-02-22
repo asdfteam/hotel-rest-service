@@ -51,42 +51,38 @@ namespace hotelservice.Controllers
             return Ok(reservations);
         }
 
-
         [HttpPost]
         [Route("/{customerId}")]
         public IActionResult CreateReservation(int customerId, [FromBody] CreateReservationRequest request)
         {
-            var customer = _hotelDbContext.Customers
-                                            .Where(c => c.CustomerId == customerId)
-                                            .FirstOrDefault();
+
+            var customer = _hotelDbContext.Customers.Where(c => c.CustomerId == customerId).FirstOrDefault();
             if (customer == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            var room = _hotelDbContext.Rooms
-                                        .Where(r => r.RoomNumber == request.RoomNumber)
-                                        .FirstOrDefault();
-            if (room == null)
+
+            var rooms = _hotelDbContext.Rooms.Where(r => r.DoubleBed >= request.DoubleBeds && r.SingleBed >= request.SingleBeds).ToList();
+
+            if (rooms.Count < 1)
             {
-                return BadRequest();
+                return NotFound();
             }
+ 
+            var reservations = _hotelDbContext.Reservations
+                                            .Where(r => request.StartDate < r.EndDate && r.StartDate < request.EndDate)
+                                            .Include(r => r.Room)
+                                            .ToList();
 
-            var otherReservations = _hotelDbContext.Reservations
-                                                      .Where(r => r.Room.RoomNumber == room.RoomNumber)
-                                                      .ToList();
+            var reservedRooms = reservations.Select(r => r.Room).ToList();
 
-                
-            bool reserved = false;
-            otherReservations.ForEach(r =>
-           {
-               if (isBetween(r.StartDate, r.EndDate, request.StartDate, request.EndDate))
-               {
-                   reserved = true;
-               }
-           });
+            RoomComparer comparer = new RoomComparer((r1, r2) => r1.RoomNumber == r2.RoomNumber);
+            IEnumerable<Room> difference = rooms.Except(reservedRooms, comparer);
 
-            if (reserved)
+            var availableRoom = difference.FirstOrDefault();
+
+            if (availableRoom == null)
             {
                 return BadRequest();
             }
@@ -94,44 +90,35 @@ namespace hotelservice.Controllers
             var reservation = new Reservation
             {
                 Customer = customer,
-                Room = room,
+                Room = availableRoom,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
             };
+
             _hotelDbContext.Reservations.Add(reservation);
             _hotelDbContext.SaveChanges();
 
-            var insertedReservation = _hotelDbContext.Reservations
-                                        .Include(r => r.Room)
-                                        .Include(r => r.Customer)
-                                        .Where(r => r.Customer.CustomerId == customerId)
-                                        .First();
-
-            _hotelDbContext.CustomerReservations.Add(new CustomerReservation
-            {
-                ReservationId = insertedReservation.ReservationId,
-                CustomerId = insertedReservation.Customer.CustomerId,
-                roomNumber = insertedReservation.Room.RoomNumber
-            });
-
-            _hotelDbContext.SaveChanges();
-
-            return Ok(insertedReservation);
+            return Ok(_hotelDbContext.Reservations.Where(r => r.Customer.CustomerId == customerId).ToList());
         }
 
-        private bool isBetween(DateTime startDate, DateTime endDate, DateTime requestStartDate, DateTime requestEndDate)
+        public class RoomComparer : IEqualityComparer<Room>
         {
+            private readonly Func<Room, Room, bool> _expression;
 
-            if (requestStartDate > endDate)
+            public RoomComparer (Func<Room, Room, bool> lambda)
             {
-                return false;
+                _expression = lambda;
             }
 
-            if (requestEndDate < startDate)
+            public bool Equals(Room r1, Room r2)
             {
-                return false;
+                return _expression(r1, r2);
             }
-            return true;
+
+            public int GetHashCode(Room obj)
+            {
+                return 0;
+            }
         }
     }
 }
