@@ -21,49 +21,17 @@ namespace hotelservice.Controllers
             _hotelDbContext = hotelDbContext;
         }
 
-        /**
-         *  grusomt men la gå
-         */
         [HttpGet]
         public IActionResult GetReservations()
         {
-            var customerReservations = _hotelDbContext.CustomerReservations.ToList();
-            List<Reservation> allReservations = new List<Reservation>();
-            if (customerReservations.Count == 0)
-            {
-                return Ok(allReservations);
-            }
 
-            var customers = _hotelDbContext.Customers.ToList();
-            var rooms = _hotelDbContext.Rooms.ToList();
-            var reservations = _hotelDbContext.Reservations.ToList();
+            var reservations = _hotelDbContext.Reservations
+                                                    .Where(r => true) // :)
+                                                    .Include(r => r.Customer)
+                                                    .Include(r => r.Room)
+                                                    .ToList();
 
-            reservations.ForEach(r =>
-           {
-
-               Reservation rs = new Reservation
-               {
-                   ReservationId = r.ReservationId,
-                   StartDate = r.StartDate,
-                   EndDate = r.EndDate
-
-               };
-
-               Customer c = customers
-                                .Where(c => r.Customer.CustomerId == c.CustomerId)
-                                .First();
-               rs.Customer = c;
-
-               Room room = rooms
-                               .Where(room => room.RoomNumber == r.Room.RoomNumber)
-                               .First();
-               rs.Room = room;
-               allReservations.Add(rs);
-
-           });
-
-            return Ok(allReservations);
-
+            return Ok(reservations);
         }
 
         [HttpGet]
@@ -108,7 +76,7 @@ namespace hotelservice.Controllers
                                                       .Where(r => r.Room.RoomNumber == room.RoomNumber)
                                                       .ToList();
 
-
+                
             bool reserved = false;
             otherReservations.ForEach(r =>
            {

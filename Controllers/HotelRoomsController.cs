@@ -16,9 +16,9 @@ namespace hotelservice.Controllers
         {
             "AVAILABLE",
             "BUSY",
-            "MAINTENANCE",
-            "CLEANING",
-            "SERVICE"
+            "MAINTAINER",
+            "CLEANER",
+            "SERVICEWORKER"
         };
 
         public HotelRoomsController(ILogger<HotelRoomsController> logger, HotelDbContext hotelDbContext)
