@@ -16,6 +16,9 @@ namespace hotelservice.Controllers
         {
             "AVAILABLE",
             "BUSY",
+            "MAINTENANCE",
+            "SERVICE",
+            "CLEANING",
             "MAINTAINER",
             "CLEANER",
             "SERVICEWORKER"
