@@ -34,13 +34,13 @@ namespace hotelservice.Controllers
 
         [HttpPost]
         [Route("/login")]
-        public IActionResult Login([FromBody] CustomerLogin loginRequest)
+        public IActionResult Login([FromBody] LoginRequest loginRequest)
         {
 
             _logger.LogDebug("login", loginRequest);
 
             var customer = _hotelDbContext.Customers
-                .Where(c => c.Username.Equals(loginRequest.Username))
+                .Where(c => c.Username.Equals(loginRequest.UserName))
                 .FirstOrDefault();
                
             if (customer == null)
@@ -50,7 +50,7 @@ namespace hotelservice.Controllers
 
             if (customer.Password.Equals(loginRequest.Password))
             {
-                return Ok();
+                return Ok(customer);
             }
 
             return BadRequest();
