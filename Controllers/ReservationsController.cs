@@ -36,7 +36,7 @@ namespace hotelservice.Controllers
 
         [HttpGet]
         [Route("{customerId}")]
-        public IActionResult GetSingleReservation(int customerId)
+        public IActionResult GetCustomerReservations(int customerId)
         {
 
             var reservations = _hotelDbContext.Reservations
@@ -49,6 +49,22 @@ namespace hotelservice.Controllers
                 return NotFound();
             }
             return Ok(reservations);
+        }
+
+        [HttpDelete]
+        [Route("/{reservationId}")]
+        public IActionResult DeleteReservation(int reservationId)
+        {
+            var reservation = _hotelDbContext.Reservations.FirstOrDefault(r => r.ReservationId == reservationId);
+
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            _hotelDbContext.Reservations.Remove(reservation);
+            _hotelDbContext.SaveChanges();
+            return Ok();
         }
 
         [HttpPost]

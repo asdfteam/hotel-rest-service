@@ -13,6 +13,4 @@ public class HotelDbContext : DbContext
     public virtual DbSet<Room> Rooms { get; set; }
     public virtual DbSet<Reservation> Reservations { get; set; }
     public virtual DbSet<Customer> Customers { get; set; }
-    public virtual DbSet<Employee> Employees { get; set; }
-    public virtual DbSet<CustomerReservation> CustomerReservations { get; set; }
 }
