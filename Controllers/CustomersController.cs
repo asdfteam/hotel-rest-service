@@ -19,6 +19,19 @@ namespace hotelservice.Controllers
             _hotelDbContext = hotelDbContext;
         }
 
+        [HttpGet]
+        [Route("/search")]
+        public IActionResult Search([FromQuery] string customerName)
+        {
+            var customer = _hotelDbContext.Customers.FirstOrDefault(c => c.CustomerName.Equals(customerName));
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(customer);
+        }
+
         [HttpPost]
         [Route("/login")]
         public IActionResult Login([FromBody] CustomerLogin loginRequest)
