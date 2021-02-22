@@ -29,20 +29,19 @@ namespace hotelservice.Controllers
         }
 
         [HttpGet("/rooms")]
-        public IActionResult GetRooms([FromQuery]string status)
+        public IActionResult GetRooms([FromQuery]string type)
         {
 
-            if (status == null)
+            return type switch
             {
-                return Ok(_hotelDbContext.Rooms.ToList());//schmekk opp alle
-            }
-
-            if (allowedStatuses.Contains(status))
-            {
-                return Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals(status)));
-            }
-
-            return BadRequest();
+                null => Ok(_hotelDbContext.Rooms.ToList()),//schmekk opp alle
+                "AVAILABLE" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("AVAILABLE")).ToList()),
+                "BUSY" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("BUSY")).ToList()),
+                "CLEANER" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("CLEANING")).ToList()),
+                "MAINTAINER" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("MAINTENANCE")).ToList()),
+                "SERVICEWORKER" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("SERVICE")).ToList()),
+                _ => BadRequest(),
+            };
         }
 
         [HttpGet("/rooms/{roomNumber}")]
