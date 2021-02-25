@@ -20,7 +20,7 @@ namespace hotelservice.Controllers
         }
 
         [HttpGet]
-        [Route("/search")]
+        [Route("/customers/search")]
         public IActionResult Search([FromQuery] string customerName)
         {
             var customer = _hotelDbContext.Customers.FirstOrDefault(c => c.CustomerName.Equals(customerName));
@@ -33,7 +33,7 @@ namespace hotelservice.Controllers
         }
 
         [HttpPost]
-        [Route("/login")]
+        [Route("/customers/login")]
         public IActionResult Login([FromBody] LoginRequest loginRequest)
         {
 
@@ -57,7 +57,7 @@ namespace hotelservice.Controllers
         }
 
         [HttpPost]
-        [Route("/register")]
+        [Route("/customers/register")]
         public IActionResult Register()
         {
             return null;

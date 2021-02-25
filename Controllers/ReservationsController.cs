@@ -22,6 +22,7 @@ namespace hotelservice.Controllers
         }
 
         [HttpGet]
+        [Route("/reservations")]
         public IActionResult GetReservations()
         {
 
@@ -35,7 +36,7 @@ namespace hotelservice.Controllers
         }
 
         [HttpGet]
-        [Route("{customerId}")]
+        [Route("/reservations/{customerId}")]
         public IActionResult GetCustomerReservations(int customerId)
         {
 
@@ -52,7 +53,7 @@ namespace hotelservice.Controllers
         }
 
         [HttpDelete]
-        [Route("/{reservationId}")]
+        [Route("/reservations/{reservationId}")]
         public IActionResult DeleteReservation(int reservationId)
         {
             var reservation = _hotelDbContext.Reservations.FirstOrDefault(r => r.ReservationId == reservationId);
@@ -68,7 +69,7 @@ namespace hotelservice.Controllers
         }
 
         [HttpPost]
-        [Route("/{customerId}")]
+        [Route("/reservations/{customerId}")]
         public IActionResult CreateReservation(int customerId, [FromBody] CreateReservationRequest request)
         {
 
