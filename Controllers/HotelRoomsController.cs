@@ -1,8 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using HotelLibrary;
+using System.Collections.Generic;
+using System;
 
 namespace hotelservice.Controllers
 {
@@ -23,7 +25,7 @@ namespace hotelservice.Controllers
             "CLEANER",
             "SERVICEWORKER"
         };
-
+                                                                                                                                                
         public HotelRoomsController(ILogger<HotelRoomsController> logger, HotelDbContext hotelDbContext)
         {
             _logger = logger;
@@ -45,6 +47,29 @@ namespace hotelservice.Controllers
                 "SERVICEWORKER" => Ok(_hotelDbContext.Rooms.Where(r => r.RoomStatus.Equals("SERVICE")).ToList()),
                 _ => BadRequest(),
             };
+        }
+
+        [HttpPut("/rooms/checkin")]
+        public IActionResult CheckIn([FromQuery] string customerName)
+        {
+            var reservation = _hotelDbContext.Reservations
+                                                .Where(r => r.Customer.CustomerName == customerName)
+                                                .Where(r => (r.StartDate.Month == DateTime.Now.Month && r.StartDate.Day == DateTime.Now.Day))
+                                                .Include(r => r.Room)
+                                                .FirstOrDefault();
+
+            if (reservation == default)
+            {
+                return BadRequest();
+            }
+
+            var room = reservation.Room;
+
+            room.RoomStatus = "BUSY";
+            _hotelDbContext.Update(room);
+            _hotelDbContext.SaveChanges();
+
+            return Ok();
         }
 
         [HttpGet("/rooms/{roomNumber}")]
