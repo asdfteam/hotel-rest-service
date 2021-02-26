@@ -58,9 +58,15 @@ namespace hotelservice.Controllers
 
         [HttpPost]
         [Route("/customers/register")]
-        public IActionResult Register()
+        public IActionResult Register([FromBody] Customer customer)
         {
-            return null;
+            _logger.LogDebug("register", customer);
+            if (customer == null)
+            {
+                return BadRequest();
+            }
+            _hotelDbContext.Customers.Add(customer);
+            return Ok(_hotelDbContext.Customers.Where(r => r.Username == customer.Username));
         }
     }
 }
