@@ -65,7 +65,15 @@ namespace hotelservice.Controllers
             {
                 return BadRequest();
             }
+
+            var existingCustomer = _hotelDbContext.Customers.Where(c => c.Username.Equals(customer.Username)).FirstOrDefault();
+            if (existingCustomer != null)
+            {
+                return BadRequest();
+            }
+
             _hotelDbContext.Customers.Add(customer);
+            _hotelDbContext.SaveChanges();
             return Ok(_hotelDbContext.Customers.Where(r => r.Username == customer.Username));
         }
     }
