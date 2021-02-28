@@ -49,6 +49,28 @@ namespace hotelservice.Controllers
             };
         }
 
+        [HttpPut("/rooms/checkout")]
+        public IActionResult CheckOut([FromQuery] string customerName)
+        {
+            var reservation = _hotelDbContext.Reservations
+                                                .Where(r => r.Customer.CustomerName == customerName)
+                                                .Where(r => r.EndDate.Month == DateTime.Now.Month && r.EndDate.Day == DateTime.Now.Day)
+                                                .Include(r => r.Room)
+                                                .FirstOrDefault();
+
+            if (reservation == default)
+            {
+                return BadRequest();
+            }
+
+            var room = reservation.Room;
+            room.RoomStatus = "CLEANER";
+            _hotelDbContext.Update(room);
+            _hotelDbContext.SaveChanges();
+
+            return Ok();
+        }
+
         [HttpPut("/rooms/checkin")]
         public IActionResult CheckIn([FromQuery] string customerName)
         {
