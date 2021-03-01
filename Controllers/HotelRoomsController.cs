@@ -64,7 +64,7 @@ namespace hotelservice.Controllers
             }
 
             var room = reservation.Room;
-            room.RoomStatus = "CLEANER";
+            room.RoomStatus = "CLEANING";
             _hotelDbContext.Update(room);
             _hotelDbContext.SaveChanges();
 
